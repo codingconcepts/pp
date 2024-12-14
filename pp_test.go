@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/http"
+	"pp/pkg/github"
+	"pp/pkg/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,7 +49,7 @@ func TestChooseBinary(t *testing.T) {
 		},
 	}
 
-	assets := []asset{
+	assets := []model.Asset{
 		{Name: "pp_v1.0.0_macos_amd64.tar.gz", DownloadURL: "a"},
 		{Name: "pp_v1.0.0_macos_arm64.tar.gz", DownloadURL: "b"},
 		{Name: "pp_v1.0.0_darwin_arm64.tar.gz", DownloadURL: "c"},
@@ -57,10 +60,9 @@ func TestChooseBinary(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			// Override GOOS and GOARCH.
-			goos = c.goos
-			goarch = c.goarch
+			client := github.NewClient(http.DefaultClient, github.WithGOARCH(c.goarch), github.WithGOOS(c.goos))
 
-			actURL, actErr := chooseBinary(assets)
+			actURL, actErr := client.ChooseBinary(assets)
 			assert.Equal(t, c.expErr, actErr)
 			if actErr != nil {
 				return
